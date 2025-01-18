@@ -68,9 +68,7 @@ void setup() {
     digitalWrite(RX_LED, 1);
 
     // Mount LittleFS filesystem
-#if defined(ESP32)
     LittleFS.begin();
-#endif
 
     radioInstance = IOHC::iohcRadio::getInstance();
     radioInstance->start(MAX_FREQS, frequencies, 0, msgRcvd, nullptr); //publishMsg); //msgArchive); //, msgRcvd);

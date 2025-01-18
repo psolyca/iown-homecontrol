@@ -45,7 +45,6 @@
 // https://github.com/LilyGO/ESP32-Paxcounter/blob/master/src/hal/ttgov2.h 
 
 
-#if defined(ESP32)
 #define RADIO_MOSI             RADIO_MOSI_PIN //                 23  // Default VSPI
 #define RADIO_MISO             RADIO_MISO_PIN //                 19  // Default VSPI
 #define RADIO_SCLK             RADIO_SCLK_PIN //                 18  // Default VSPI
@@ -68,7 +67,6 @@
 #define RADIO_DATA_AVAIL                        RADIO_DIO_1     // FIFO empty from Radio
 #define RADIO_RXTIMEOUT                         RADIO_DIO_2     // Radio Rx Sequencer timeout (used to switch the receiver frequency)
 #define RADIO_PREAMBLE_DETECTED                 RADIO_DIO_4     // Preamble detected from Radio (used instead of FIFO empty)
-#endif
 
 #define SPI_CLK_FRQ                                 10000000
 

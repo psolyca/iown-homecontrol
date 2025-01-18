@@ -22,9 +22,7 @@
 #include <string>
 #include <LittleFS.h>
 
-#if defined(ESP32)
-    #include <FS.h>
-#endif
+  #include <FS.h>
 
 void listFS();
 void cat(const char *fname);

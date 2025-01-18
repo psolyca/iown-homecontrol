@@ -22,15 +22,11 @@
 #if defined(RADIO_SX127X)
 #include <map>
 
-#if defined(ESP8266)
-    #include <TickerUs.h>
-#elif defined(ESP32)
 #define CONFIG_DISABLE_HAL_LOCKS true
 #include <TickerUsESP32.h>
 #include <esp_task_wdt.h>
 #include <SPI.h>
 // #include <SPIeX.h>
-#endif
 
 namespace Radio {
     SPISettings SpiSettings(4000000, MSBFIRST, SPI_MODE0);
@@ -77,17 +73,13 @@ namespace Radio {
 
         // Check the availability of the Radio
         while (!digitalRead(RADIO_RESET)) {
-#if defined(ESP32)
             esp_task_wdt_reset();
-#endif
             delayMicroseconds(1);
         }
         delayMicroseconds(BOARD_READY_AFTER_POR);
 
         // Initialize SPI bus
-#if defined(ESP32)
         SPI.begin(RADIO_SCLK, RADIO_MISO, RADIO_MOSI, RADIO_NSS);
-#endif
         // SPI.setFrequency(SPI_CLK_FRQ);
         // SPI.setDataMode(SPI_MODE0);
         // SPI.setBitOrder(MSBFIRST);

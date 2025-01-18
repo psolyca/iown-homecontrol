@@ -29,9 +29,8 @@
 #if defined(RADIO_SX126X)
         #include <SX126xHelpers.h>
 #endif
-#if defined(ESP32)
-    #include <TickerUsESP32.h>
-#endif
+
+#include <TickerUsESP32.h>
 
 #define SM_GRANULARITY_US               130ULL  // Ticker function frequency in uS (100 minimum) 4 x 26µs = 104
 #define SM_GRANULARITY_MS               1       // Ticker function frequency in uS
@@ -78,15 +77,9 @@ namespace IOHC {
             uint32_t scanTimeUs{};
             uint8_t currentFreqIdx = 0;
 
-
-        #if defined(ESP8266)
-            Timers::TickerUs TickTimer;
-            Timers::TickerUs Sender;
-//            Timers::TickerUs FreqScanner;
-        #elif defined(ESP32)
             TimersUS::TickerUsESP32 TickTimer;
             TimersUS::TickerUsESP32 Sender;
-        #endif
+
             iohcPacket *iohc{};
             iohcPacket *delayed{};
             

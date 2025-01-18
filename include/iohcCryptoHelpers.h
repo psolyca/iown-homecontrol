@@ -22,13 +22,7 @@
 #include <vector>
 #include <tuple>
 
-#if defined(ESP8266)
-    #include <Crypto.h>
-    #include <AES.h>
-    #include <CTR.h>
-#elif defined(ESP32)
-    #include "mbedtls/aes.h"        // AES functions
-#endif
+#include "mbedtls/aes.h"        // AES functions
 
 #define CRC_POLYNOMIAL_CCITT    0x8408
 

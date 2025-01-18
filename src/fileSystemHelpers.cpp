@@ -54,7 +54,6 @@ void printFileInfo(const char* dirName, const char* filePath, uint8_t level) {
  */
 void traverseDirectory(const char* dirName, uint8_t level) {
 
-#if defined(ESP32)
   File root = LittleFS.open(dirName);
   File fileName;
   while (fileName = root.openNextFile()) {
@@ -67,7 +66,6 @@ void traverseDirectory(const char* dirName, uint8_t level) {
       printFileInfo(dirName, fileName.name(), level);
     }
   }
-#endif
 }
 
 void listFS() {

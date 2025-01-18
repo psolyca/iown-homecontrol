@@ -40,10 +40,8 @@ extern "C" {
 
 #include <utils.h>
 
-#if defined(ESP32)
-  #include <TickerUsESP32.h>
-  #define MAXCMDS 50
-#endif
+#include <TickerUsESP32.h>
+#define MAXCMDS 50
 
 inline TimerHandle_t wifiReconnectTimer;
 inline WiFiClient wifiClient;                 // Create an ESP32 WiFiClient class to connect to the MQTT server
@@ -251,9 +249,7 @@ namespace Cmd {
     inline bool scanMode = false;
 
 
-#if defined(ESP32)
-      inline TimersUS::TickerUsESP32 kbd_tick;
-#endif
+    inline TimersUS::TickerUsESP32 kbd_tick;
 
     inline TimerHandle_t consoleTimer;
 

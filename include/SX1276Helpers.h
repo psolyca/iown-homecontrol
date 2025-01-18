@@ -19,11 +19,8 @@
 
 #include <sx1276Regs-Fsk.h>
 
-#if defined(ESP8266)
 
-#elif defined(ESP32)
     #include "mbedtls/aes.h"        // AES functions
-#endif
 
 #define LSBFIRST 0
 #define MSBFIRST 1
