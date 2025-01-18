@@ -17,56 +17,30 @@
 #ifndef IOHC_BOARD_H
 #define IOHC_BOARD_H
 
-#define RADIO_SX127X
 #define Regulatory_Domain_EU_868
 //#define RADIO_SX126X
 #define BOARD_MODEL BOARD_HELTEC32_V3
 /*
  * Board pins definitions
+ * See _env.ini files
  */
-// OK Heltec Wifi ESP32 Lora v2.1
-#define RADIO_SCLK_PIN       5
-#define RADIO_MISO_PIN      19
-#define RADIO_MOSI_PIN      27
-#define RADIO_CS_PIN        18
-#define RADIO_DIO0_PIN      26
-#define RADIO_RST_PIN       14
-#define BOARD_LED_PIN       25
-#ifdef LILYGO
-#define RADIO_DIO1_PIN      33 //LILYGO
-#define RADIO_DIO2_PIN      32 //LILYGO
-#elif defined(HELTEC)
-#define RADIO_DIO1_PIN      35 //HELTEC
-#define RADIO_DIO2_PIN      34 //HELTEC
-#define RADIO_BUSY_PIN      32
-#endif
-
-// OK LilyGo Wifi ESP32 Lora v2.1.6
-// https://github.com/LilyGO/ESP32-Paxcounter/blob/master/src/hal/ttgov2.h 
-
 
 #define RADIO_MOSI             RADIO_MOSI_PIN //                 23  // Default VSPI
 #define RADIO_MISO             RADIO_MISO_PIN //                 19  // Default VSPI
 #define RADIO_SCLK             RADIO_SCLK_PIN //                 18  // Default VSPI
-#if defined(RADIO_SX127X)
-#define RADIO_RESET        RADIO_RST_PIN  //                 12
-#define RADIO_NSS          RADIO_CS_PIN   //                 25
-#endif
-#if defined(RADIO_SX127X)
-//#define RADIO_DIO_0                             5   // NodeMCU D1
-//#define RADIO_DIO_1                             2   // NodeMCU D4 // Not used - No wire
-//#define RADIO_DIO_2                             2   // NodeMCU D4 // Not used - No wire
-//#define RADIO_DIO_4                             2   // NodeMCU D4
-#define RADIO_DIO_0                             RADIO_DIO0_PIN //                 35
-//#define RADIO_DIO_1                             34      // Not used - No wire
-//#define RADIO_DIO_2                             34      // Not used - No wire
-#define RADIO_DIO_4                             RADIO_DIO2_PIN //                 34
-#endif
-#if defined(RADIO_SX127X)
+
+#define RADIO_DIO_0                             RADIO_DIO0_PIN //
+#define RADIO_DIO_1                             RADIO_DIO1_PIN //
+#define RADIO_DIO_2                             RADIO_DIO2_PIN //
+#define RADIO_DIO_4                             RADIO_DIO4_PIN //
+
 #define RADIO_PACKET_AVAIL                      RADIO_DIO_0     // Packet Received / CRC ok from Radio
 #define RADIO_DATA_AVAIL                        RADIO_DIO_1     // FIFO empty from Radio
 #define RADIO_RXTIMEOUT                         RADIO_DIO_2     // Radio Rx Sequencer timeout (used to switch the receiver frequency)
 #define RADIO_PREAMBLE_DETECTED                 RADIO_DIO_4     // Preamble detected from Radio (used instead of FIFO empty)
+
+//#define RADIO_RESET        RADIO_RST_PIN
+//#define RADIO_NSS          RADIO_CS_PIN
 
 #define SPI_CLK_FRQ                                 10000000
 
@@ -96,7 +70,5 @@
 #define SCAN_LED                  BOARD_LED_PIN //              22
 // #endif
 #define RX_LED                        SCAN_LED
-
-#endif
 
 #endif
