@@ -20,7 +20,7 @@
 #include <sx1276Regs-Fsk.h>
 
 
-    #include "mbedtls/aes.h"        // AES functions
+#include "mbedtls/aes.h"        // AES functions
 
 #define LSBFIRST 0
 #define MSBFIRST 1

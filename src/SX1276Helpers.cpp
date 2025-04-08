@@ -19,7 +19,6 @@
 #include <SX1276Helpers.h>
 #include <board-config.h>
 
-#if defined(RADIO_SX127X)
 #include <map>
 
 #define CONFIG_DISABLE_HAL_LOCKS true
@@ -505,4 +504,3 @@ namespace Radio {
         dump_fsk_registers(registers);
     }
 }
-#endif

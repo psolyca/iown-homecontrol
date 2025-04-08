@@ -21,9 +21,7 @@
 
 #include <board-config.h>
 
-#if defined(RADIO_SX127X)
 #include <SX1276Helpers.h>
-#endif
 
 #define RESET_AFTER_LAST_MSG_US         15000
 #define MAX_FRAME_LEN                   32

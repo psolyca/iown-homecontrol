@@ -78,15 +78,11 @@ namespace IOHC {
         /* TODO this is wrongly named and/or assigned, but work like that*/
         //        printf("Starting TickTimer Handler...\n");
         //        TickTimer.attach_us(SM_GRANULARITY_US/*SM_GRANULARITY_MS*/, tickerCounter, this);
-#if defined(RADIO_SX127X)
         //        attachInterrupt(RADIO_PACKET_AVAIL, i_payload, CHANGE); //
         //        attachInterrupt(RADIO_PREAMBLE_DETECTED, i_preamble, CHANGE); //
         attachInterrupt(RADIO_DIO0_PIN, handle_interrupt_fromisr, RISING); //CHANGE); //
         //        attachInterrupt(RADIO_DIO1_PIN, handle_interrupt_fromisr, RISING); // CHANGE); //
         attachInterrupt(RADIO_DIO2_PIN, handle_interrupt_fromisr, RISING); //CHANGE); //
-#elif defined(CC1101)
-        attachInterrupt(RADIO_PREAMBLE_DETECTED, i_preamble, RISING);
-#endif
 
         // start state machine
         printf("Starting Interrupt Handler...\n");
@@ -162,7 +158,6 @@ namespace IOHC {
  */
     void IRAM_ATTR iohcRadio::tickerCounter(iohcRadio *radio) {
         // Not need to put in IRAM as we reuse task for µs instead ISR
-#if defined(RADIO_SX127X)
         Radio::readBytes(REG_IRQFLAGS1, _flags, sizeof(_flags));
 
         // If Int of PayLoad
@@ -212,21 +207,6 @@ namespace IOHC {
             radio->currentFreqIdx = 0;
 
         Radio::setCarrier(Radio::Carrier::Frequency, radio->scan_freqs[radio->currentFreqIdx]);
-
-#elif defined(CC1101)
-        if (__g_preamble){
-            radio->receive();
-            radio->tickCounter = 0;
-            radio->preCounter = 0;
-            return;
-        }
-
-        if (f_lock)
-            return;
-
-        if ((++radio->tickCounter * SM_GRANULARITY_US) < radio->scanTimeUs)
-            return;
-#endif
     }
 
     /**
@@ -282,12 +262,7 @@ namespace IOHC {
         Radio::setStandby();
         Radio::clearFlags();
 
-#if defined(RADIO_SX127X)
         Radio::writeBytes(REG_FIFO, radio->iohc->payload.buffer, radio->iohc->buffer_length);
-
-#elif defined(CC1101)
-        Radio::sendFrame(radio->iohc->payload.buffer, radio->iohc->buffer_length); // Prepare (encode, add crc, and so no) the packet for CC1101
-#endif
 
         packetStamp = esp_timer_get_time();
         radio->iohc->decode(true); //false);
@@ -361,7 +336,6 @@ namespace IOHC {
 
         _g_payload_millis = esp_timer_get_time();
         packetStamp = _g_payload_millis;
-#if defined(RADIO_SX127X)
         if (stats) {
             iohc->rssi = static_cast<float>(Radio::readByte(REG_RSSIVALUE)) / -2.0f;
             int16_t thres = Radio::readByte(REG_RSSITHRESH);
@@ -373,83 +347,10 @@ namespace IOHC {
             iohc->afc = /*(int32_t)*/f * 61.0;
             //            iohc->rssiAt = micros();
         }
-#elif defined(CC1101)
-        __g_preamble = false;
-
-        uint8_t tmprssi=Radio::SPIgetRegValue(REG_RSSI);
-        if (tmprssi>=128)
-            iohc->rssi = (float)((tmprssi-256)/2)-74;
-        else
-            iohc->rssi = (float)(tmprssi/2)-74;
-
-        uint8_t bytesInFIFO = Radio::SPIgetRegValue(REG_RXBYTES, 6, 0);
-        size_t readBytes = 0;
-        uint32_t lastPop = millis();
-#endif
-
-#if defined(RADIO_SX127X)
 
         while (Radio::dataAvail()) {
             iohc->payload.buffer[iohc->buffer_length++] = Radio::readByte(REG_FIFO);
         }
-
-#elif defined(CC1101)
-        uint8_t lenghtFrameCoded = 0xFF;
-        uint8_t tmpBuffer[64]={0x00};
-        while (readBytes < lenghtFrameCoded) {
-            if ( (readBytes>=1) && (lenghtFrameCoded==0xFF) ){ // Obtain frame lenght
-                lenghtFrame = (Radio::reverseByte( ((uint8_t)(tmpBuffer[0]<<4) | (uint8_t)(tmpBuffer[1]>>4)))) & 0b00011111;
-                lenghtFrameCoded = ((lenghtFrame + 2 + 1)*8) + ((lenghtFrame + 2 + 1)*2);   // Calculate Num of bits of encoded frame (add 2 bit per byte)
-                lenghtFrameCoded = ceil((float)lenghtFrameCoded/8);                         // divide by 8 bits per byte and round to up
-                Radio::setPktLenght(lenghtFrameCoded);
-                //Serial.printf("BytesReaded: %d\tlenghtFrame: 0x%d\t lenghtFrameCoded: 0x%d\n", readBytes, lenghtFrame,  lenghtFrameCoded);
-            }
-
-            if (bytesInFIFO == 0) {
-                if (millis() - lastPop > 5) {
-                    // readData was required to read a packet longer than the one received.
-                    //Serial.println("No data for more than 5mS. Stop here.");
-                    break;
-                } else {
-                    delay(1);
-                    bytesInFIFO = Radio::SPIgetRegValue(REG_RXBYTES, 6, 0);
-                    continue;
-                }
-            }
-
-            // read the minimum between "remaining length" and bytesInFifo
-            uint8_t bytesToRead = (((uint8_t)(lenghtFrameCoded - readBytes))<(bytesInFIFO)?((uint8_t)(lenghtFrameCoded - readBytes)):(bytesInFIFO));
-            Radio::SPIreadRegisterBurst(REG_FIFO, bytesToRead, &(tmpBuffer[readBytes]));
-            readBytes += bytesToRead;
-            lastPop = millis();
-
-            // Get how many bytes are left in FIFO.
-            bytesInFIFO = Radio::SPIgetRegValue(REG_RXBYTES, 6, 0);
-        }
-
-
-        frmErr=true;
-        if (lenghtFrameCoded<255){
-            int8_t lenFuncDecodeFrame = Radio::decodeFrame(tmpBuffer, lenghtFrameCoded);
-            if (lenFuncDecodeFrame>0 && lenFuncDecodeFrame<=MAX_FRAME_LEN){
-                if (iohcUtils::radioPacketComputeCrc(tmpBuffer, lenFuncDecodeFrame) == 0 ){
-                    iohc->buffer_length = lenFuncDecodeFrame;
-                    memcpy(iohc->payload.buffer, tmpBuffer, lenFuncDecodeFrame);  // volcamos el resultado al array de origen
-                    frmErr=false;
-                }
-            }
-        }
-
-        // Flush then standby according to RXOFF_MODE (default: RADIOLIB_CC1101_RXOFF_IDLE)
-        if (Radio::SPIgetRegValue(REG_MCSM1, 3, 2) == RF_RXOFF_IDLE) {
-            Radio::SPIsendCommand(CMD_IDLE);                    // set mode to standby
-            Radio::SPIsendCommand(CMD_FLUSH_RX | CMD_READ);     // flush Rx FIFO
-        }
-
-        f_lock = false;
-        Radio::SPIsendCommand(CMD_RX);
-
-#endif
 
         // Radio::clearFlags();
         if (rxCB) rxCB(iohc);
@@ -464,11 +365,7 @@ namespace IOHC {
  * `__g_preamble` depending on the defined radio type.
  */
     void IRAM_ATTR iohcRadio::i_preamble() {
-#if defined(RADIO_SX127X)
         _g_preamble = digitalRead(RADIO_PREAMBLE_DETECTED);
-#elif defined(CC1101)
-        __g_preamble = true;
-#endif
         f_lock = _g_preamble;
     }
 
@@ -477,8 +374,6 @@ namespace IOHC {
  * `_g_payload` if the macro `RADIO_SX127X` is defined.
  */
     void IRAM_ATTR iohcRadio::i_payload() {
-#if defined(RADIO_SX127X)
         _g_payload = digitalRead(RADIO_PACKET_AVAIL);
-#endif
     }
 }

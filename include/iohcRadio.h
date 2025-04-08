@@ -23,12 +23,7 @@
 #include <iohcCryptoHelpers.h>
 #include <iohcPacket.h>
 
-#if defined(RADIO_SX127X)
-        #include <SX1276Helpers.h>
-#endif
-#if defined(RADIO_SX126X)
-        #include <SX126xHelpers.h>
-#endif
+#include <SX1276Helpers.h>
 
 #include <TickerUsESP32.h>
 
@@ -90,10 +85,6 @@ namespace IOHC {
             static void i_preamble();
             static void i_payload();
             static void packetSender(iohcRadio *radio);
-
-        #if defined(CC1101)
-            uint8_t lenghtFrame=0;
-        #endif
     };
 }
 
