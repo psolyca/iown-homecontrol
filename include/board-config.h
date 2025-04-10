@@ -18,7 +18,6 @@
 #define IOHC_BOARD_H
 
 #define Regulatory_Domain_EU_868
-//#define RADIO_SX126X
 #define BOARD_MODEL BOARD_HELTEC32_V3
 /*
  * Board pins definitions
@@ -66,9 +65,7 @@
 #define FREQS2SCAN              {CHANNEL2, CHANNEL1, CHANNEL3}
 #define MAX_FREQS                1       // Number of Frequencies to scan through Fast Hopping set to 1 to disable FHSS
 
-// #if defined(HELTEC)
 #define SCAN_LED                  BOARD_LED_PIN //              22
-// #endif
 #define RX_LED                        SCAN_LED
 
 #endif

@@ -148,11 +148,7 @@ namespace iohcCrypto {
 
         mbedtls_aes_setkey_enc( &aes, controller_key, 128 );
            
-//        for (uint8_t a=0; a<16; a++){
-//            hmac[a] = 0;
-//        }
         mbedtls_aes_crypt_ecb(&aes, MBEDTLS_AES_ENCRYPT, iv.data(), hmac);
-//        mbedtls_aes_free( &aes );
         mbedtls_aes_crypt_ecb(&aes, MBEDTLS_AES_ENCRYPT, iv.data(), hmac);    
 
     }
@@ -178,14 +174,6 @@ namespace iohcCrypto {
         }
         iv[15] = node_address[0];
 
-    /*  
-        uint8_t captured[16] = {0};
-        aes128.setKey((uint8_t *)btransfer, 16);
-        aes128.encryptBlock(captured, iv.data());
-
-        for (int i = 0; i < 16; ++i)
-            key[i] ^= captured[i];
-    */
         size_t iv_offset = 0;
         mbedtls_aes_setkey_enc( &aes, (uint8_t *)btransfer, 128 );
         mbedtls_aes_crypt_cfb128(&aes, MBEDTLS_AES_ENCRYPT, 16, &iv_offset, iv.data(), (uint8_t *)key, captured);

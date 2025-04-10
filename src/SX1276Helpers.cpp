@@ -87,9 +87,6 @@ namespace Radio {
         digitalWrite(RADIO_NSS, HIGH);
         delayMicroseconds(BOARD_READY_AFTER_POR);
 
-        // SPI.beginTransaction(Radio::SpiSettings);
-        // SPI.endTransaction();
-
         // Check the availability of the Radio
         reset();
         uint8_t chipVersion = readByte(REG_VERSION);
@@ -242,43 +239,6 @@ namespace Radio {
         writeByte(REG_PACONFIG, regPaConfigInitVal);
     }
 
-    /*!
-     * Performs the Rx chain calibration for LF and HF bands
-     * \remark Must be called just after the reset so all registers are at their
-     *         default values
-     */
-    // void RxChainCalibration( void ) {
-    //     uint8_t regPaConfigInitVal;
-    //     uint32_t initialFreq;
-
-    //     // Save context
-    //     regPaConfigInitVal = readByte( REG_PACONFIG );
-    //     initialFreq = ( double )( ( ( uint32_t )readByte( REG_FRFMSB ) << 16 ) |
-    //                               ( ( uint32_t )readByte( REG_FRFMID ) << 8 ) |
-    //                               ( ( uint32_t )readByte( REG_FRFLSB ) ) ) * ( double )FREQ_STEP;
-
-    //     // Cut the PA just in case, RFO output, power = -1 dBm
-    //     writeByte( REG_PACONFIG, 0x00 );
-
-    //     // Launch Rx chain calibration for LF band
-    //     writeByte ( REG_IMAGECAL, ( readByte( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_MASK ) | RF_IMAGECAL_IMAGECAL_START );
-    //     while( ( readByte( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_RUNNING ) == RF_IMAGECAL_IMAGECAL_RUNNING )
-    //     {
-    //     }
-
-    //     // Sets a Frequency in HF band
-    //     SetChannel( 868000000 );
-
-    //     // Launch Rx chain calibration for HF band
-    //     writeByte ( REG_IMAGECAL, ( readByte( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_MASK ) | RF_IMAGECAL_IMAGECAL_START );
-    //     while( ( readByte( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_RUNNING ) == RF_IMAGECAL_IMAGECAL_RUNNING )
-    //     {
-    //     }
-
-    //     // Restore context
-    //     writeByte( REG_PACONFIG, regPaConfigInitVal );
-    //     SetChannel( initialFreq );
-    // }
     void IRAM_ATTR setStandby() {
         writeByte(REG_OPMODE, (readByte(REG_OPMODE) & RF_OPMODE_MASK) | RF_OPMODE_STANDBY);
     }
@@ -298,11 +258,6 @@ namespace Radio {
         writeByte(REG_OPMODE, (readByte(REG_OPMODE) & RF_OPMODE_MASK) | RF_OPMODE_RECEIVER);
 
         RxReady;
-        /*
-                // Start Sequencer
-                writeByte(REG_OPMODE, (readByte(REG_OPMODE) & RF_OPMODE_MASK) | RF_OPMODE_RECEIVER);
-                writeByte(REG_SEQCONFIG1, readByte(REG_SEQCONFIG1 | RF_SEQCONFIG1_SEQUENCER_START));
-        */
     }
 
 
@@ -310,11 +265,8 @@ namespace Radio {
         for (uint8_t i = 0; i < size; ++i) {
             buffer[i] = readByte(regAddr + i);
         }
-    } // Clears FIFO at startup to avoid dirty reads
-    // void clearBuffer() {
-    //     for (uint8_t idx=0; idx <= 64; ++idx)
-    //         readByte(REG_FIFO);
-    // }
+    }
+
     void clearBuffer() {
         // Taille du buffer FIFO du SX1276
         const uint8_t bufferSize = 64;
@@ -326,15 +278,6 @@ namespace Radio {
         }
     }
 
-    //     void clearFlags() {
-    //         uint8_t out[2] = {0xff, 0xff};
-    //         writeBytes(REG_IRQFLAGS1, out, 2);
-    //     }
-    // void clearFlags_A() {
-    //   uint8_t flags = readByte(REG_IRQFLAGS1);
-    //   flags &= ~0xFF; // Efface tous les drapeaux
-    //   writeByte(REG_IRQFLAGS1, flags);
-    // }
     void IRAM_ATTR clearFlags() {
         uint16_t flags = readWord(REG_IRQFLAGS1);
         flags &= ~0xFFFF; // Efface tous les drapeaux
