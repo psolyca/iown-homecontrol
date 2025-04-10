@@ -249,7 +249,7 @@ namespace Radio {
         writeByte(REG_SYNCCONFIG, (readByte(REG_SYNCCONFIG) & RF_SYNCCONFIG_SYNCSIZE_MASK) | RF_SYNCCONFIG_SYNCSIZE_2);
         writeByte(REG_OPMODE, (readByte(REG_OPMODE) & RF_OPMODE_MASK) | RF_OPMODE_TRANSMITTER);
 
-        TxReady;
+        PllLock;
     }
 
     void IRAM_ATTR setRx() {
@@ -292,7 +292,7 @@ namespace Radio {
         return readByte(REG_IRQFLAGS1) & RF_IRQFLAGS1_SYNCADDRESSMATCH;
     }
 
-    bool IRAM_ATTR dataAvail() {
+    bool IRAM_ATTR isFifoEmpty() {
         return (readByte(REG_IRQFLAGS2) & RF_IRQFLAGS2_FIFOEMPTY) == 0; //?false:true;
     }
 

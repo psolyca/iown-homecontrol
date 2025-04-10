@@ -46,8 +46,8 @@ namespace IOHC {
             virtual ~iohcRadio() = default;
             void start(uint8_t num_freqs, uint32_t *scan_freqs, uint32_t scanTimeUs, IohcPacketDelegate rxCallback, IohcPacketDelegate txCallback);
             void send(std::vector<iohcPacket*>&iohcTx);
-            volatile static bool _g_preamble;
-            volatile static bool _g_payload;
+            volatile static bool g_preamble;
+            volatile static bool g_payload;
             volatile static bool f_lock;
             static void tickerCounter(iohcRadio *radio);
 

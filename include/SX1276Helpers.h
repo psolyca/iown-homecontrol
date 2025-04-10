@@ -35,7 +35,9 @@
 #define SPI_Read    0x00
 
 #define TxReady  {while (!(readByte(REG_IRQFLAGS1) & RF_IRQFLAGS1_TXREADY));}   // Check for TxReady flag
-#define RxReady  {while (!(readByte(REG_IRQFLAGS1) & RF_IRQFLAGS1_PLLLOCK));}   // Check for PllLock flag; do not use with sequencer
+#define RxReady  {while (!(readByte(REG_IRQFLAGS1) & RF_IRQFLAGS1_RXREADY));}   // Check for RxReady flag
+#define ModeReady {while (!(readByte(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY));}   // Wait for ModeReady flag
+#define PllLock  {while (!(readByte(REG_IRQFLAGS1) & RF_IRQFLAGS1_PLLLOCK));}   // Wait for PllLock flag; do not use with sequencer
 
 #define RF_PACKETCONFIG2_IOHOME_POWERFRAME  0x10    // Missing from SX1276 FSK modem registers and bits definitions
 
@@ -81,7 +83,7 @@ namespace Radio {
     void clearFlags();
     bool preambleDetected();
     bool syncedAddress();
-    bool dataAvail();
+    bool isFifoEmpty();
     void reset();
     bool crcOk();
     uint8_t readByte(uint8_t regAddr);
