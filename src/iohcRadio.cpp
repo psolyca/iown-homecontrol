@@ -14,6 +14,7 @@
    limitations under the License.
  */
 
+#include "SX1276Helpers.h"
 #include <esp32-hal-gpio.h>
 #include <map>
 
@@ -22,6 +23,7 @@
 
 namespace IOHC {
     iohcRadio *iohcRadio::_iohcRadio = nullptr;
+    volatile bool iohcRadio::_badIohcRadio = false;
     volatile bool iohcRadio::_g_preamble = false;
     volatile bool iohcRadio::_g_payload = false;
     volatile unsigned long iohcRadio::_g_payload_millis = 0L;
@@ -65,34 +67,36 @@ namespace IOHC {
     }
 
     iohcRadio::iohcRadio() {
-        Radio::initHardware();
-        Radio::calibrate();
+        _badIohcRadio = Radio::initHardware();
+        if (!_badIohcRadio) {
+            Radio::calibrate();
 
-        Radio::initRegisters(MAX_FRAME_LEN);
-        Radio::setCarrier(Radio::Carrier::Deviation, 19200);
-        Radio::setCarrier(Radio::Carrier::Bitrate, 38400);
-        Radio::setCarrier(Radio::Carrier::Bandwidth, 250);
-        Radio::setCarrier(Radio::Carrier::Modulation, Radio::Modulation::FSK);
+            Radio::initRegisters(MAX_FRAME_LEN);
+            Radio::setCarrier(Radio::Carrier::Deviation, 19200);
+            Radio::setCarrier(Radio::Carrier::Bitrate, 38400);
+            Radio::setCarrier(Radio::Carrier::Bandwidth, 250);
+            Radio::setCarrier(Radio::Carrier::Modulation, Radio::Modulation::FSK);
 
-        // Attach interrupts to Preamble detected and end of packet sent/received
-        /* TODO this is wrongly named and/or assigned, but work like that*/
-        //        printf("Starting TickTimer Handler...\n");
-        //        TickTimer.attach_us(SM_GRANULARITY_US/*SM_GRANULARITY_MS*/, tickerCounter, this);
-        //        attachInterrupt(RADIO_PACKET_AVAIL, i_payload, CHANGE); //
-        //        attachInterrupt(RADIO_PREAMBLE_DETECTED, i_preamble, CHANGE); //
-        attachInterrupt(RADIO_DIO0_PIN, handle_interrupt_fromisr, RISING); //CHANGE); //
-        //        attachInterrupt(RADIO_DIO1_PIN, handle_interrupt_fromisr, RISING); // CHANGE); //
-        attachInterrupt(RADIO_DIO2_PIN, handle_interrupt_fromisr, RISING); //CHANGE); //
+            // Attach interrupts to Preamble detected and end of packet sent/received
+            /* TODO this is wrongly named and/or assigned, but work like that*/
+            //        printf("Starting TickTimer Handler...\n");
+            //        TickTimer.attach_us(SM_GRANULARITY_US/*SM_GRANULARITY_MS*/, tickerCounter, this);
+            //        attachInterrupt(RADIO_PACKET_AVAIL, i_payload, CHANGE); //
+            //        attachInterrupt(RADIO_PREAMBLE_DETECTED, i_preamble, CHANGE); //
+            attachInterrupt(RADIO_DIO0_PIN, handle_interrupt_fromisr, RISING); //CHANGE); //
+            //        attachInterrupt(RADIO_DIO1_PIN, handle_interrupt_fromisr, RISING); // CHANGE); //
+            attachInterrupt(RADIO_DIO2_PIN, handle_interrupt_fromisr, RISING); //CHANGE); //
 
-        // start state machine
-        printf("Starting Interrupt Handler...\n");
-        BaseType_t task_code = xTaskCreatePinnedToCore(handle_interrupt_task, "handle_interrupt_task", 8192,
-                                                       this /*nullptr*//*device*/, /*tskIDLE_PRIORITY*/4,
-                                                       &handle_interrupt, /*tskNO_AFFINITY*/xPortGetCoreID());
-        if (task_code != pdPASS) {
-            printf("ERROR STATEMACHINE Can't create task %d\n", task_code);
-            // sx127x_destroy(device);
-            return;
+            // start state machine
+            printf("Starting Interrupt Handler...\n");
+            BaseType_t task_code = xTaskCreatePinnedToCore(handle_interrupt_task, "handle_interrupt_task", 8192,
+                                                        this /*nullptr*//*device*/, /*tskIDLE_PRIORITY*/4,
+                                                        &handle_interrupt, /*tskNO_AFFINITY*/xPortGetCoreID());
+            if (task_code != pdPASS) {
+                printf("ERROR STATEMACHINE Can't create task %d\n", task_code);
+                // sx127x_destroy(device);
+                return;
+            }
         }
     }
 
@@ -105,6 +109,7 @@ namespace IOHC {
     iohcRadio *iohcRadio::getInstance() {
         if (!_iohcRadio)
             _iohcRadio = new iohcRadio();
+        if (_badIohcRadio) return NULL;
         return _iohcRadio;
     }
 

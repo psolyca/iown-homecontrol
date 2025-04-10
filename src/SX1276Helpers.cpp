@@ -28,6 +28,8 @@
 // #include <SPIeX.h>
 
 namespace Radio {
+    uint8_t radioVersion[] = {0x11, 0x12, 0x13};
+
     SPISettings SpiSettings(4000000, MSBFIRST, SPI_MODE0);
 
     // Simplified bandwidth registries evaluation
@@ -61,21 +63,14 @@ namespace Radio {
  * The function `initHardware` initializes the hardware for SPI communication with a radio chip, checks
  * the availability of the radio, configures SPI settings, and puts the radio chip in standby mode.
  */
-    void initHardware() {
+    bool initHardware() {
+        bool chipNotFound = true;
+
         printf("\nSPI Init");
 
         gpio_pullup_en((gpio_num_t) RADIO_MISO);
 
         // SPI pins configuration
-
-        pinMode(RADIO_RESET, INPUT); // Connected to Reset; floating for POR
-
-        // Check the availability of the Radio
-        while (!digitalRead(RADIO_RESET)) {
-            esp_task_wdt_reset();
-            delayMicroseconds(1);
-        }
-        delayMicroseconds(BOARD_READY_AFTER_POR);
 
         // Initialize SPI bus
         SPI.begin(RADIO_SCLK, RADIO_MISO, RADIO_MOSI, RADIO_NSS);
@@ -95,11 +90,27 @@ namespace Radio {
         // SPI.beginTransaction(Radio::SpiSettings);
         // SPI.endTransaction();
 
+        // Check the availability of the Radio
+        reset();
+        uint8_t chipVersion = readByte(REG_VERSION);
+        for(uint8_t j = 0; j < 3; j++) {
+            if(chipVersion == radioVersion[j]) {
+                chipNotFound = false;
+                break;
+            }
+          }
+        if (chipNotFound) {
+            printf("\nRadio Chip not found\n");
+            return chipNotFound;
+        }
+        printf("\nRadio Chip version 0x%X\n", chipVersion);
+
         writeByte(REG_OPMODE, RF_OPMODE_STANDBY); // Put Radio in Standby mode
 
         pinMode(SCAN_LED, OUTPUT);
         digitalWrite(SCAN_LED, 1);
         printf("\nRadio Chip is ready\n");
+        return chipNotFound;
     }
 
 /**
@@ -342,6 +353,14 @@ namespace Radio {
         return (readByte(REG_IRQFLAGS2) & RF_IRQFLAGS2_FIFOEMPTY) == 0; //?false:true;
     }
 
+    void IRAM_ATTR reset() {
+        pinMode(RADIO_RESET, OUTPUT);
+        digitalWrite(RADIO_RESET, LOW);
+        delayMicroseconds(1);
+        digitalWrite(RADIO_RESET, HIGH);
+        delayMicroseconds(5000);
+    }
+
     uint8_t IRAM_ATTR readByte(uint8_t regAddr) {
         uint8_t getByte;
         readBytes(regAddr, &getByte, 1);
@@ -478,12 +497,12 @@ namespace Radio {
     void dump() {
         uint8_t idx = 0;
 
-        Serial.printf("#Type\tRegister Name\tAddress[Hex]\tValue[Hex]\n");
+        printf("#Type\tRegister Name\tAddress[Hex]\tValue[Hex]\n");
         do {
-            Serial.printf("REG\tname\t0x%2.2x\t0x%2.2x\n", idx, readByte(idx));
+            printf("REG\tname\t0x%2.2x\t0x%2.2x\n", idx, readByte(idx));
             idx += 1;
         } while (idx < 0x7f);
-        Serial.printf("PKT\tFalse;False;255;0;\nXTAL\t32000000\n");
+        printf("PKT\tFalse;False;255;0;\nXTAL\t32000000\n");
         // Serial.printf("\n");
         dumpReal();
     }

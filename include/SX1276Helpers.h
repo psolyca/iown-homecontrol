@@ -43,6 +43,7 @@
     Helper functions to setup and manage SX1276 registry configuration, query status and SPI interaction
 */
 namespace Radio {
+
     enum class Carrier {
         Frequency,
         Deviation,
@@ -70,7 +71,7 @@ namespace Radio {
         uint8_t     Exp;
     };
 
-    void initHardware();
+    bool initHardware();
     void initRegisters(uint8_t maxPayloadLength);
     void calibrate();
     void setStandby();
@@ -81,6 +82,7 @@ namespace Radio {
     bool preambleDetected();
     bool syncedAddress();
     bool dataAvail();
+    void reset();
     bool crcOk();
     uint8_t readByte(uint8_t regAddr);
     void readBytes(uint8_t regAddr, uint8_t *out, uint8_t len);

@@ -71,6 +71,9 @@ void setup() {
     LittleFS.begin();
 
     radioInstance = IOHC::iohcRadio::getInstance();
+    if (radioInstance == NULL) {
+        while(true){ yield();}
+    }
     radioInstance->start(MAX_FREQS, frequencies, 0, msgRcvd, nullptr); //publishMsg); //msgArchive); //, msgRcvd);
 
     sysTable = IOHC::iohcSystemTable::getInstance();

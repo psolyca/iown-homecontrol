@@ -57,6 +57,7 @@ namespace IOHC {
             bool sent(iohcPacket *packet);
 
             static iohcRadio *_iohcRadio;
+            static volatile bool _badIohcRadio;
             static uint8_t _flags[2];
             volatile static unsigned long _g_payload_millis;
             
