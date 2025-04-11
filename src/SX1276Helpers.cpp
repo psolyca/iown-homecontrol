@@ -66,7 +66,7 @@ namespace Radio {
     bool initHardware() {
         bool chipNotFound = true;
 
-        printf("\nSPI Init");
+        printf("Init SPI\n");
 
         gpio_pullup_en((gpio_num_t) RADIO_MISO);
 
@@ -97,16 +97,16 @@ namespace Radio {
             }
           }
         if (chipNotFound) {
-            printf("\nRadio Chip not found\n");
+            printf("Radio Chip not found\n");
             return chipNotFound;
         }
-        printf("\nRadio Chip version 0x%X\n", chipVersion);
+        printf("Radio Chip version 0x%X\n", chipVersion);
 
         writeByte(REG_OPMODE, RF_OPMODE_STANDBY); // Put Radio in Standby mode
 
         pinMode(SCAN_LED, OUTPUT);
         digitalWrite(SCAN_LED, 1);
-        printf("\nRadio Chip is ready\n");
+        printf("Radio Chip is ready\n");
         return chipNotFound;
     }
 
@@ -120,6 +120,7 @@ namespace Radio {
  * packets
  */
     void initRegisters(uint8_t maxPayloadLength = 0xff) {
+        printf("Init Registers\n");
         // Firstly put radio in StandBy mode as some parameters cannot be changed differently
         writeByte(REG_OPMODE, (readByte(REG_OPMODE) & RF_OPMODE_MASK) | RF_OPMODE_STANDBY);
 
@@ -213,6 +214,7 @@ namespace Radio {
  * frequency band.
  */
     void calibrate() {
+        printf("Init Calibrate\n");
         // Save context
         uint8_t regPaConfigInitVal = readByte(REG_PACONFIG);
 
@@ -369,6 +371,7 @@ namespace Radio {
     }
 
     bool IRAM_ATTR setCarrier(Carrier param, uint32_t value) {
+        printf("Set carrier\n");
         uint32_t tmpVal;
         uint8_t out[4];
         regBandWidth bw{};
