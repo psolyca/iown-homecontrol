@@ -326,18 +326,24 @@ namespace Cmd {
   inline void init() {
     
     #if defined(MQTT)
-      mqttClient.setClientId("iown");
-      mqttClient.setCredentials("user", "passwd");
-      mqttClient.setServer(MQTT_SERVER, 1883);
-      mqttClient.onConnect(onMqttConnect);
-      mqttClient.onMessage(onMqttMessage);
-      mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(5000), pdFALSE, nullptr, reinterpret_cast<TimerCallbackFunction_t>(connectToMqtt));
-    #endif
-
-    wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(5000), pdFALSE, nullptr, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
-
-    WiFi.onEvent(WiFiEvent);
-    connectToWifi();
+      if (WIFI_SSID!="") {
+        wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(5000), pdFALSE, nullptr, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
+        WiFi.onEvent(WiFiEvent);
+        connectToWifi();
+        if (MQTT_SERVER!="") {
+          mqttClient.setClientId("iown");
+          mqttClient.setCredentials("user", "passwd");
+          mqttClient.setServer(MQTT_SERVER, 1883);
+          mqttClient.onConnect(onMqttConnect);
+          mqttClient.onMessage(onMqttMessage);
+          mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(5000), pdFALSE, nullptr, reinterpret_cast<TimerCallbackFunction_t>(connectToMqtt));
+        } else {
+          Serial.println("MQTT server empty, abording MQTT connection.")
+        }
+      } else {
+        Serial.println("SSID empty, abording network services.");
+      }
+    #endif //MQTT
 
 //    consoleTimer = xTimerCreate("consoleTimer", pdMS_TO_TICKS(500), pdFALSE, nullptr, reinterpret_cast<TimerCallbackFunction_t>(cmdFuncHandler));
     kbd_tick.attach_ms(500, cmdFuncHandler);
